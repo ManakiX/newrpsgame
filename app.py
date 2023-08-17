@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 import random
+import socket
 
 app = Flask(__name__)
 
@@ -16,18 +17,27 @@ def check_win(player, computer):
     elif player == 'rock':
         if computer == 'scissors':
             return 'Rock smashes scissors. You win!'
-        else: 
+        else:
             return 'Paper covers rock. You lose.'
     elif player == 'paper':
         if computer == 'rock':
             return 'Paper covers rock. You win!'
-        else: 
+        else:
             return 'Scissors cuts paper. You lose.'
     elif player == 'scissors':
         if computer == 'paper':
             return 'Scissors cuts paper. You win!'
-        else: 
+        else:
             return 'Rock smashes scissors. You lose.'
+
+def find_available_port(start_port, end_port):
+    for port in range(start_port, end_port + 1):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex(('127.0.0.1', port))
+        if result != 0:  
+            return port
+        sock.close()
+    return None
 
 @app.route('/', methods=['GET', 'POST'])
 def play():
@@ -38,4 +48,8 @@ def play():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run()
+    available_port = find_available_port(8000, 8080) 
+    if available_port:
+        app.run(host='0.0.0.0', port=available_port)
+    else:
+        print("No available ports were found")
